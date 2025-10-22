@@ -27,7 +27,7 @@ React FE (Cloudflare Pages) → Railway "sentirag" (Node/Express)
 
 ## 📅 Development Phases
 
-### Phase 1: Foundation Setup (Week 1)
+### Phase 1: Foundation Setup
 **Priority**: Critical
 
 #### Infrastructure & Environment
@@ -59,7 +59,7 @@ React FE (Cloudflare Pages) → Railway "sentirag" (Node/Express)
     /utils/      # Helper functions
   ```
 
-### Phase 2: Core Ingestion Pipeline (Week 2)
+### Phase 2: Core Ingestion Pipeline
 **Priority**: Critical
 
 #### Data Sources Integration
@@ -102,7 +102,7 @@ React FE (Cloudflare Pages) → Railway "sentirag" (Node/Express)
   - [ ] Calculate mean_score, pos_ratio, neg_ratio, neu_ratio
   - [ ] Extract top mentions with URLs
 
-### Phase 3: API Development (Week 3)
+### Phase 3: API Development
 **Priority**: Critical
 
 #### Core API Endpoints
@@ -156,7 +156,7 @@ React FE (Cloudflare Pages) → Railway "sentirag" (Node/Express)
 - [ ] Set up basic metrics collection
 - [ ] Implement circuit breakers for external APIs
 
-### Phase 5: Frontend Development (Week 5)
+### Phase 5: Frontend Development 
 **Priority**: Medium
 
 #### React Frontend (Cloudflare Pages)
@@ -174,7 +174,7 @@ React FE (Cloudflare Pages) → Railway "sentirag" (Node/Express)
 - [ ] Ticker search and selection
 - [ ] Mobile-responsive design
 
-### Phase 6: Testing & Optimization (Week 6)
+### Phase 6: Testing & Optimization 
 **Priority**: High
 
 #### Testing Strategy
@@ -201,7 +201,7 @@ React FE (Cloudflare Pages) → Railway "sentirag" (Node/Express)
 - [ ] Optimize ONNX model inference
 - [ ] Fine-tune vector search parameters
 
-### Phase 7: Deployment & Monitoring (Week 7)
+### Phase 7: Deployment & Monitoring 
 **Priority**: Critical
 
 #### Production Deployment
