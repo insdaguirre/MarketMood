@@ -34,9 +34,6 @@ export function getPool(): Pool {
 export async function query(text: string, params?: any[]) {
   const start = Date.now();
   try {
-    if (!config.POSTGRES_URL) {
-      throw new Error('POSTGRES_URL is not configured');
-    }
     const result = await getPool().query(text, params);
     const duration = Date.now() - start;
     logger.debug('Database query', { duration, query: text.substring(0, 100) });
