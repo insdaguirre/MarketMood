@@ -15,8 +15,9 @@ router.get(
   '/sentiment',
   rateLimiters.sentiment,
   async (req: Request, res: Response): Promise<void> => {
+    const ticker = req.query.ticker as string;
+    
     try {
-      const ticker = req.query.ticker as string;
       const sinceMinutes = parseInt(req.query.sinceMinutes as string) || 1440;
 
       if (!ticker) {
@@ -62,7 +63,7 @@ router.get(
       logger.error('Sentiment endpoint error', { 
         error: error?.message || error,
         stack: error?.stack,
-        ticker 
+        ticker: ticker || 'unknown'
       });
       res.status(500).json({ 
         error: 'Internal server error',
