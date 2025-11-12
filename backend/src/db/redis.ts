@@ -4,15 +4,21 @@ import { logger } from '../config/logger';
 
 let redisClient: Redis | null = null;
 
-export function getRedis(): Redis {
+export function getRedis(): Redis | null {
+  if (!config.REDIS_URL) {
+    // Don't throw - allow app to run without Redis (graceful degradation)
+    return null;
+  }
+  
   if (!redisClient) {
-    if (!config.REDIS_URL) {
-      // Don't throw - allow app to run without Redis (graceful degradation)
-      logger.warn('REDIS_URL is not configured - Redis features will be disabled');
-      // Create a mock Redis client that fails gracefully
-      return null as any;
-    }
     try {
+      // Check if it's an Upstash REST URL - ioredis needs TCP connection
+      if (config.REDIS_URL.includes('upstash.io') && !config.REDIS_URL.startsWith('redis://')) {
+        logger.warn('REDIS_URL appears to be an Upstash REST URL. ioredis requires a TCP connection string. Redis features will be disabled.');
+        logger.warn('To use Upstash with ioredis, you need the TCP endpoint, not the REST endpoint.');
+        return null;
+      }
+      
       redisClient = new Redis(config.REDIS_URL, {
         maxRetriesPerRequest: 3,
         retryStrategy: (times) => {
@@ -21,23 +27,24 @@ export function getRedis(): Redis {
         },
         lazyConnect: true, // Don't connect immediately
         enableOfflineQueue: false, // Don't queue commands when offline
+        connectTimeout: 5000,
       });
 
       redisClient.on('connect', () => {
-        logger.debug('Redis connection established');
+        logger.info('Redis connection established');
       });
 
       redisClient.on('error', (err) => {
-        logger.error('Redis connection error', { error: err });
+        logger.warn('Redis connection error (continuing without Redis)', { error: err.message });
       });
 
       // Try to connect, but don't block if it fails
       redisClient.connect().catch((err) => {
-        logger.warn('Redis initial connection failed - continuing without Redis', { error: err });
+        logger.warn('Redis initial connection failed - continuing without Redis', { error: err.message });
       });
-    } catch (error) {
-      logger.warn('Failed to create Redis client - continuing without Redis', { error });
-      return null as any;
+    } catch (error: any) {
+      logger.warn('Failed to create Redis client - continuing without Redis', { error: error?.message });
+      return null;
     }
   }
 
@@ -48,12 +55,13 @@ export function getRedis(): Redis {
 let _redis: Redis | null = null;
 export const redis = {
   get: async (key: string) => {
+    if (!config.REDIS_URL) return null;
     if (!_redis) _redis = getRedis();
-    if (!_redis || !config.REDIS_URL) return null;
+    if (!_redis) return null;
     try {
       return await _redis.get(key);
-    } catch (error) {
-      logger.warn('Redis get failed', { error, key });
+    } catch (error: any) {
+      logger.warn('Redis get failed', { error: error?.message, key });
       return null;
     }
   },

@@ -58,9 +58,16 @@ router.get(
 
       res.json(response);
       return;
-    } catch (error) {
-      logger.error('Sentiment endpoint error', { error });
-      res.status(500).json({ error: 'Internal server error' });
+    } catch (error: any) {
+      logger.error('Sentiment endpoint error', { 
+        error: error?.message || error,
+        stack: error?.stack,
+        ticker 
+      });
+      res.status(500).json({ 
+        error: 'Internal server error',
+        message: error?.message || 'Unknown error'
+      });
       return;
     }
   }
