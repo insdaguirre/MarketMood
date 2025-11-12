@@ -32,6 +32,19 @@ app.get('/healthz', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Root endpoint
+app.get('/', (_req, res) => {
+  res.json({ 
+    service: 'MarketMood API',
+    version: '1.0.0',
+    endpoints: {
+      health: '/healthz',
+      sentiment: '/api/sentiment?ticker=AAPL',
+      ask: '/api/ask (POST)',
+    }
+  });
+});
+
 // API routes
 app.use('/api', apiRoutes);
 app.use('/admin', adminRoutes);

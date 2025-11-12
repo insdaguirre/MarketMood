@@ -1,13 +1,33 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+// Ensure URL has protocol
+function normalizeUrl(url: string): string {
+  if (!url) return 'http://localhost:8080';
+  // If URL doesn't start with http:// or https://, add https://
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    return `https://${url}`;
+  }
+  return url;
+}
+
+const API_BASE_URL = normalizeUrl(import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080');
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 10000, // 10 second timeout
 });
+
+// Add response interceptor for error handling
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    console.error('API Error:', error.message, error.response?.data);
+    return Promise.reject(error);
+  }
+);
 
 export interface SentimentResponse {
   ticker: string;
