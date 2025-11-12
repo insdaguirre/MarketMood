@@ -33,7 +33,12 @@ CREATE TABLE IF NOT EXISTS "UsageDaily" (
 );
 
 -- Sentiment snapshots (1-day retention)
-CREATE TYPE IF NOT EXISTS source_enum AS ENUM ('news','reddit','stocktwits','finnhub');
+-- Create enum type if it doesn't exist
+DO $$ BEGIN
+    CREATE TYPE source_enum AS ENUM ('news','reddit','stocktwits','finnhub');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 CREATE TABLE IF NOT EXISTS "Snapshot" (
   id BIGSERIAL PRIMARY KEY,
