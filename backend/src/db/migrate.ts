@@ -4,11 +4,13 @@ import { query } from './pg';
 import { logger } from '../config/logger';
 
 async function runMigration(file: string) {
-  // SQL files are in src/db/sql, but when compiled, we need to reference them from the source
-  // Use process.cwd() to get the project root, then navigate to src/db/sql
-  const sqlPath = join(process.cwd(), 'src', 'db', 'sql', file);
+  // Try dist/db/sql first (production), then src/db/sql (development)
+  let sqlPath = join(__dirname, 'sql', file);
+  if (!require('fs').existsSync(sqlPath)) {
+    sqlPath = join(process.cwd(), 'src', 'db', 'sql', file);
+  }
   const sql = readFileSync(sqlPath, 'utf-8');
-  logger.info('Running migration', { file });
+  logger.info('Running migration', { file, path: sqlPath });
   await query(sql);
   logger.info('Migration completed', { file });
 }
