@@ -148,7 +148,7 @@ npm run build
 4. Or connect GitHub repo and set:
    - Root directory: `frontend`
    - Build command: `npm run build`
-   - Build output directory: `dist`
+   - Build output directory: `dist` (NOT `frontend/dist` - since root is already `frontend`)
 
 5. Add environment variable:
    - `VITE_API_BASE_URL` = your Railway backend URL
