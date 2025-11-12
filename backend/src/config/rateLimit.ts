@@ -17,7 +17,7 @@ export function createRateLimiter(options: RateLimitOptions) {
     skipSuccessfulRequests = false,
   } = options;
 
-  return async (req: Request, res: Response, next: NextFunction) => {
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const key = keyGenerator(req);
       const window = Math.floor(Date.now() / windowMs);
@@ -31,10 +31,11 @@ export function createRateLimiter(options: RateLimitOptions) {
 
       if (current > maxRequests) {
         logger.warn('Rate limit exceeded', { key, current, maxRequests });
-        return res.status(429).json({
+        res.status(429).json({
           error: 'Too many requests',
           retryAfter: windowMs / 1000,
         });
+        return;
       }
 
       // Track successful requests if needed
@@ -49,10 +50,12 @@ export function createRateLimiter(options: RateLimitOptions) {
       }
 
       next();
+      return;
     } catch (error) {
       logger.error('Rate limiter error', { error });
       // Fail open - allow request if Redis is down
       next();
+      return;
     }
   };
 }

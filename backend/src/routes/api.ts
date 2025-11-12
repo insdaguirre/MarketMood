@@ -14,7 +14,7 @@ const router = Router();
 router.get(
   '/sentiment',
   rateLimiters.sentiment,
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     try {
       const ticker = req.query.ticker as string;
       const sinceMinutes = parseInt(req.query.sinceMinutes as string) || 1440;
@@ -55,9 +55,11 @@ router.get(
       };
 
       res.json(response);
+      return;
     } catch (error) {
       logger.error('Sentiment endpoint error', { error });
-      return res.status(500).json({ error: 'Internal server error' });
+      res.status(500).json({ error: 'Internal server error' });
+      return;
     }
   }
 );
@@ -67,7 +69,7 @@ router.post(
   '/ask',
   authenticate,
   rateLimiters.ask,
-  async (req: AuthRequest, res: Response) => {
+  async (req: AuthRequest, res: Response): Promise<void> => {
     const startTime = Date.now();
     
     try {
@@ -150,13 +152,16 @@ router.post(
       };
 
       res.json(response);
+      return;
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Invalid request', details: error.errors });
+        res.status(400).json({ error: 'Invalid request', details: error.errors });
+        return;
       }
       
       logger.error('Ask endpoint error', { error });
-      return res.status(500).json({ error: 'Internal server error' });
+      res.status(500).json({ error: 'Internal server error' });
+      return;
     }
   }
 );

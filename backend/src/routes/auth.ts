@@ -43,12 +43,14 @@ export function authenticate(req: AuthRequest, _res: Response, next: NextFunctio
 /**
  * Admin key authentication
  */
-export function adminAuth(req: Request, res: Response, next: NextFunction) {
+export function adminAuth(req: Request, res: Response, next: NextFunction): void {
   const adminKey = req.headers['x-admin-key'];
   
   if (!adminKey || !config.ADMIN_KEY || adminKey !== config.ADMIN_KEY) {
-    return res.status(401).json({ error: 'Unauthorized' });
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
   }
   
   next();
+  return;
 }
