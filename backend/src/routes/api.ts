@@ -122,7 +122,23 @@ router.post(
       }
 
       // Vector search
-      const searchResults = await vectorSearch(queryText, tickers, k, 24);
+      let searchResults;
+      try {
+        searchResults = await vectorSearch(queryText, tickers, k, 24);
+      } catch (searchError: any) {
+        // Check if it's a "table doesn't exist" error
+        if (searchError?.code === '42P01' || searchError?.message?.includes('does not exist')) {
+          logger.warn('Database tables not found - migrations may not have been run');
+          res.json({
+            answer: 'The database is not yet initialized. Please run database migrations first.',
+            citations: [],
+            retrieved: 0,
+            latencyMs: Date.now() - startTime,
+          } as AskResponse);
+          return;
+        }
+        throw searchError;
+      }
 
       if (searchResults.length === 0) {
         res.json({
