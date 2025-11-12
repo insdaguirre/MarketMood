@@ -5,9 +5,9 @@ import { logger } from '../config/logger';
 
 async function runMigration(file: string) {
   const sql = readFileSync(join(__dirname, 'sql', file), 'utf-8');
-  logger.info({ file }, 'Running migration');
+  logger.info('Running migration', { file });
   await query(sql);
-  logger.info({ file }, 'Migration completed');
+  logger.info('Migration completed', { file });
 }
 
 async function migrate() {
@@ -21,7 +21,7 @@ async function migrate() {
     logger.info('All migrations completed successfully');
     process.exit(0);
   } catch (error) {
-    logger.error({ error }, 'Migration failed');
+    logger.error('Migration failed', { error });
     process.exit(1);
   }
 }

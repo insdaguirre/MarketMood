@@ -18,8 +18,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Request logging
-app.use((req, res, next) => {
-  logger.info({
+app.use((req, _res, next) => {
+  logger.info('Request', {
     method: req.method,
     path: req.path,
     ip: req.ip,
@@ -28,7 +28,7 @@ app.use((req, res, next) => {
 });
 
 // Health check endpoint
-app.get('/healthz', (req, res) => {
+app.get('/healthz', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
@@ -37,8 +37,8 @@ app.use('/api', apiRoutes);
 app.use('/admin', adminRoutes);
 
 // Error handling middleware
-app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  logger.error({
+app.use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  logger.error('Request error', {
     error: err.message,
     stack: err.stack,
     path: req.path,

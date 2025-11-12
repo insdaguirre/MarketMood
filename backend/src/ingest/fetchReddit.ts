@@ -51,14 +51,14 @@ async function getAccessToken(): Promise<string> {
       throw new Error(`Reddit auth error: ${response.status}`);
     }
 
-    const data = await response.json();
+    const data = await response.json() as { access_token: string; expires_in: number };
     accessToken = data.access_token;
     tokenExpiry = now + (data.expires_in * 1000) - 60000; // Refresh 1 min early
 
     logger.debug('Reddit access token refreshed');
     return accessToken;
   } catch (error) {
-    logger.error({ error }, 'Reddit authentication error');
+    logger.error('Reddit authentication error', { error });
     throw error;
   }
 }
@@ -70,11 +70,11 @@ export async function fetchReddit(ticker: string): Promise<FetchResult> {
   try {
     const cached = await redis.get(cacheKey);
     if (cached) {
-      logger.debug({ ticker, source: 'reddit' }, 'Cache hit');
+      logger.debug('Cache hit', { ticker, source: 'reddit' });
       return JSON.parse(cached);
     }
   } catch (error) {
-    logger.warn({ error, ticker }, 'Cache read error');
+    logger.warn('Cache read error', { error, ticker });
   }
 
   try {
@@ -93,11 +93,11 @@ export async function fetchReddit(ticker: string): Promise<FetchResult> {
         });
 
         if (!response.ok) {
-          logger.warn({ subreddit, status: response.status }, 'Reddit API error');
+          logger.warn('Reddit API error', { subreddit, status: response.status });
           continue;
         }
 
-        const data: RedditResponse = await response.json();
+        const data = await response.json() as RedditResponse;
         
         for (const post of data.data.children) {
           const text = post.data.selftext || post.data.title;
@@ -115,7 +115,7 @@ export async function fetchReddit(ticker: string): Promise<FetchResult> {
         // Rate limiting - be respectful
         await new Promise(resolve => setTimeout(resolve, 1000));
       } catch (error) {
-        logger.warn({ error, subreddit }, 'Error fetching from subreddit');
+        logger.warn('Error fetching from subreddit', { error, subreddit });
       }
     }
 
@@ -128,13 +128,13 @@ export async function fetchReddit(ticker: string): Promise<FetchResult> {
     try {
       await redis.setex(cacheKey, CACHE_TTL, JSON.stringify(result));
     } catch (error) {
-      logger.warn({ error }, 'Cache write error');
+      logger.warn('Cache write error', { error });
     }
 
-    logger.info({ ticker, count: result.items.length, source: 'reddit' }, 'Fetched Reddit data');
+    logger.info('Fetched Reddit data', { ticker, count: result.items.length, source: 'reddit' });
     return result;
   } catch (error) {
-    logger.error({ error, ticker }, 'Reddit fetch error');
+    logger.error('Reddit fetch error', { error, ticker });
     throw error;
   }
 }

@@ -10,7 +10,7 @@ export async function cleanupOldData(): Promise<{ snapshots: number; embeddings:
   const cutoffTime = new Date(Date.now() - retentionHours * 60 * 60 * 1000);
 
   try {
-    logger.info({ retentionHours, cutoffTime }, 'Starting retention cleanup');
+    logger.info('Starting retention cleanup', { retentionHours, cutoffTime });
 
     // Delete embeddings first (due to foreign key constraint)
     const embeddingResult = await query(
@@ -27,8 +27,8 @@ export async function cleanupOldData(): Promise<{ snapshots: number; embeddings:
     const snapshotsDeleted = snapshotResult.rowCount || 0;
 
     logger.info(
-      { snapshotsDeleted, embeddingsDeleted, retentionHours },
-      'Retention cleanup completed'
+      'Retention cleanup completed',
+      { snapshotsDeleted, embeddingsDeleted, retentionHours }
     );
 
     return {
@@ -36,7 +36,7 @@ export async function cleanupOldData(): Promise<{ snapshots: number; embeddings:
       embeddings: embeddingsDeleted,
     };
   } catch (error) {
-    logger.error({ error }, 'Retention cleanup failed');
+    logger.error('Retention cleanup failed', { error });
     throw error;
   }
 }

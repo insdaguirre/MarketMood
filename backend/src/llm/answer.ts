@@ -48,10 +48,10 @@ async function callLLM(prompt: string): Promise<string> {
       throw new Error(`OpenAI API error: ${response.status} ${error}`);
     }
 
-    const data = await response.json();
+    const data = await response.json() as { choices: Array<{ message: { content: string } }> };
     return data.choices[0].message.content;
   } catch (error) {
-    logger.error({ error }, 'LLM API error');
+    logger.error('LLM API error', { error });
     throw error;
   }
 }
@@ -71,15 +71,23 @@ export async function generateAnswer(
   try {
     const cached = await redis.get(cacheKey);
     if (cached) {
-      logger.debug({ query: query.substring(0, 50) }, 'Answer cache hit');
+      logger.debug('Answer cache hit', { query: query.substring(0, 50) });
       return cached;
     }
   } catch (error) {
-    logger.warn({ error }, 'Cache read error');
+    logger.warn('Cache read error', { error });
   }
 
   // Generate prompt
-  const prompt = buildPrompt(query, citations);
+  const prompt = buildPrompt(query, citations.map(c => ({
+    id: c.embeddingId,
+    snapshotId: c.snapshotId,
+    ticker: c.ticker,
+    ts: c.ts,
+    source: c.source,
+    url: c.url,
+    snippet: c.snippet,
+  })));
 
   // Call LLM
   const answer = await callLLM(prompt);
@@ -88,7 +96,7 @@ export async function generateAnswer(
   try {
     await redis.setex(cacheKey, CACHE_TTL, answer);
   } catch (error) {
-    logger.warn({ error }, 'Cache write error');
+    logger.warn('Cache write error', { error });
   }
 
   return answer;

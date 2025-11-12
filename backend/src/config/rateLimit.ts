@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from 'express';
-import { Redis } from 'ioredis';
 import { redis } from '../db/redis';
 import { logger } from './logger';
 
@@ -31,7 +30,7 @@ export function createRateLimiter(options: RateLimitOptions) {
       res.setHeader('X-RateLimit-Remaining', Math.max(0, maxRequests - current));
 
       if (current > maxRequests) {
-        logger.warn({ key, current, maxRequests }, 'Rate limit exceeded');
+        logger.warn('Rate limit exceeded', { key, current, maxRequests });
         return res.status(429).json({
           error: 'Too many requests',
           retryAfter: windowMs / 1000,
@@ -51,7 +50,7 @@ export function createRateLimiter(options: RateLimitOptions) {
 
       next();
     } catch (error) {
-      logger.error({ error }, 'Rate limiter error');
+      logger.error('Rate limiter error', { error });
       // Fail open - allow request if Redis is down
       next();
     }

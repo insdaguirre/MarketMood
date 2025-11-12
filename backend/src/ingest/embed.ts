@@ -1,7 +1,6 @@
 import * as ort from 'onnxruntime-node';
 import { logger } from '../config/logger';
 import { EmbeddingResult } from '../types/api';
-import { readFileSync } from 'fs';
 import { join } from 'path';
 
 const EMBEDDING_DIM = 384;
@@ -23,12 +22,12 @@ async function initializeModel(): Promise<ort.InferenceSession> {
       session = await ort.InferenceSession.create(modelPath);
       logger.info('e5-small embedding model loaded');
     } catch (error) {
-      logger.warn({ error }, 'e5-small model not found, using mock embeddings');
+      logger.warn('e5-small model not found, using mock embeddings', { error });
     }
 
     return session!;
   } catch (error) {
-    logger.error({ error }, 'Failed to initialize e5-small model');
+    logger.error('Failed to initialize e5-small model', { error });
     throw error;
   }
 }
@@ -111,7 +110,7 @@ export async function generateEmbedding(text: string): Promise<EmbeddingResult> 
     
     return { vector: normalized, text };
   } catch (error) {
-    logger.warn({ error, text: text.substring(0, 50) }, 'Embedding generation error, using mock');
+    logger.warn('Embedding generation error, using mock', { error, text: text.substring(0, 50) });
     const vector = generateMockEmbedding(text);
     return { vector, text };
   }

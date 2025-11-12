@@ -39,13 +39,6 @@ export function deduplicateResults(results: FetchResult[]): FetchResult[] {
   }
 
   const unique = deduplicate(allItems);
-  
-  // Group by ticker
-  const grouped = new Map<string, FetchResult['items']>();
-  for (const item of unique) {
-    // Extract ticker from result - we'll need to track this differently
-    // For now, return as single result
-  }
 
   // Return deduplicated items grouped by source
   const bySource = new Map<string, FetchResult['items']>();
@@ -56,7 +49,7 @@ export function deduplicateResults(results: FetchResult[]): FetchResult[] {
     bySource.get(item.source)!.push(item);
   }
 
-  return Array.from(bySource.entries()).map(([source, items]) => ({
+  return Array.from(bySource.entries()).map(([, items]) => ({
     ticker: '', // Will be set by caller
     items,
   }));

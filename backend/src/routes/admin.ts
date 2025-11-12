@@ -29,7 +29,7 @@ router.post('/ingest', adminAuth, async (req: Request, res: Response) => {
       return res.status(400).json({ error: `No tickers configured for tier ${tier}` });
     }
 
-    logger.info({ tier, tickerCount: tickers.length }, 'Starting ingestion');
+    logger.info('Starting ingestion', { tier, tickerCount: tickers.length });
 
     let totalItems = 0;
     let snapshotsCreated = 0;
@@ -40,19 +40,19 @@ router.post('/ingest', adminAuth, async (req: Request, res: Response) => {
         // Fetch from all sources
         const [finnhubData, redditData, newsapiData, stocktwitsData] = await Promise.allSettled([
           fetchFinnhub(ticker).catch(err => {
-            logger.warn({ error: err, ticker, source: 'finnhub' }, 'Fetch failed');
+            logger.warn('Fetch failed', { error: err, ticker, source: 'finnhub' });
             return null;
           }),
           fetchReddit(ticker).catch(err => {
-            logger.warn({ error: err, ticker, source: 'reddit' }, 'Fetch failed');
+            logger.warn('Fetch failed', { error: err, ticker, source: 'reddit' });
             return null;
           }),
           fetchNewsAPI(ticker).catch(err => {
-            logger.warn({ error: err, ticker, source: 'newsapi' }, 'Fetch failed');
+            logger.warn('Fetch failed', { error: err, ticker, source: 'newsapi' });
             return null;
           }),
           fetchStocktwits(ticker).catch(err => {
-            logger.warn({ error: err, ticker, source: 'stocktwits' }, 'Fetch failed');
+            logger.warn('Fetch failed', { error: err, ticker, source: 'stocktwits' });
             return null;
           }),
         ]);
@@ -74,7 +74,7 @@ router.post('/ingest', adminAuth, async (req: Request, res: Response) => {
         }
 
         if (allItems.length === 0) {
-          logger.debug({ ticker }, 'No items fetched, skipping');
+          logger.debug('No items fetched, skipping', { ticker });
           continue;
         }
 
@@ -121,15 +121,15 @@ router.post('/ingest', adminAuth, async (req: Request, res: Response) => {
             await saveSnapshot(snapshot, embeddingText, embedding);
             snapshotsCreated++;
           } catch (error) {
-            logger.error({ error, ticker, source }, 'Failed to process source');
+            logger.error('Failed to process source', { error, ticker, source });
           }
         }
       } catch (error) {
-        logger.error({ error, ticker }, 'Failed to process ticker');
+        logger.error('Failed to process ticker', { error, ticker });
       }
     }
 
-    logger.info({ tier, tickersProcessed: tickers.length, items: totalItems, snapshotsCreated }, 'Ingestion completed');
+    logger.info('Ingestion completed', { tier, tickersProcessed: tickers.length, items: totalItems, snapshotsCreated });
 
     res.json({
       tier,
@@ -144,13 +144,13 @@ router.post('/ingest', adminAuth, async (req: Request, res: Response) => {
 });
 
 // Retention cleanup endpoint
-router.post('/retention', adminAuth, async (req: Request, res: Response) => {
+router.post('/retention', adminAuth, async (_req: Request, res: Response) => {
   try {
     const result = await cleanupOldData();
-    res.json(result);
+    return res.json(result);
   } catch (error) {
-    logger.error({ error }, 'Retention endpoint error');
-    res.status(500).json({ error: 'Internal server error' });
+    logger.error('Retention endpoint error', { error });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 

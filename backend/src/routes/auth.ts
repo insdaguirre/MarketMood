@@ -11,7 +11,7 @@ export interface AuthRequest extends Request {
 /**
  * JWT authentication middleware (minimal MVP)
  */
-export function authenticate(req: AuthRequest, res: Response, next: NextFunction) {
+export function authenticate(req: AuthRequest, _res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;
   
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -23,12 +23,17 @@ export function authenticate(req: AuthRequest, res: Response, next: NextFunction
 
   try {
     const token = authHeader.substring(7);
+    if (!config.JWT_SECRET) {
+      req.userId = undefined;
+      req.orgId = undefined;
+      return next();
+    }
     const decoded = jwt.verify(token, config.JWT_SECRET) as { userId: string; orgId: string };
     req.userId = decoded.userId;
     req.orgId = decoded.orgId;
     next();
   } catch (error) {
-    logger.warn({ error }, 'JWT verification failed');
+    logger.warn('JWT verification failed', { error });
     req.userId = undefined;
     req.orgId = undefined;
     next(); // Still allow, but unauthenticated
@@ -41,7 +46,7 @@ export function authenticate(req: AuthRequest, res: Response, next: NextFunction
 export function adminAuth(req: Request, res: Response, next: NextFunction) {
   const adminKey = req.headers['x-admin-key'];
   
-  if (!adminKey || adminKey !== config.ADMIN_KEY) {
+  if (!adminKey || !config.ADMIN_KEY || adminKey !== config.ADMIN_KEY) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
   

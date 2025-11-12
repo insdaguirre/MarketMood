@@ -36,11 +36,11 @@ export async function fetchStocktwits(ticker: string): Promise<FetchResult> {
   try {
     const cached = await redis.get(cacheKey);
     if (cached) {
-      logger.debug({ ticker, source: 'stocktwits' }, 'Cache hit');
+      logger.debug('Cache hit', { ticker, source: 'stocktwits' });
       return JSON.parse(cached);
     }
   } catch (error) {
-    logger.warn({ error, ticker }, 'Cache read error');
+    logger.warn('Cache read error', { error, ticker });
   }
 
   try {
@@ -62,7 +62,7 @@ export async function fetchStocktwits(ticker: string): Promise<FetchResult> {
       throw new Error(`Stocktwits API error: ${response.status} ${response.statusText}`);
     }
 
-    const data: StocktwitsResponse = await response.json();
+    const data = await response.json() as StocktwitsResponse;
 
     const items = (data.messages || [])
       .filter(msg => msg.body && msg.body.length > 0)
@@ -84,13 +84,13 @@ export async function fetchStocktwits(ticker: string): Promise<FetchResult> {
     try {
       await redis.setex(cacheKey, CACHE_TTL, JSON.stringify(result));
     } catch (error) {
-      logger.warn({ error }, 'Cache write error');
+      logger.warn('Cache write error', { error });
     }
 
-    logger.info({ ticker, count: items.length, source: 'stocktwits' }, 'Fetched Stocktwits data');
+    logger.info('Fetched Stocktwits data', { ticker, count: items.length, source: 'stocktwits' });
     return result;
   } catch (error) {
-    logger.error({ error, ticker }, 'Stocktwits fetch error');
+    logger.error('Stocktwits fetch error', { error, ticker });
     throw error;
   }
 }

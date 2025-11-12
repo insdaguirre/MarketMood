@@ -28,7 +28,7 @@ interface AggregationInput {
  * Aggregate sentiment data into snapshots
  */
 export function aggregateSnapshot(input: AggregationInput): SnapshotData {
-  const { ticker, source, items, sentiments, embeddings } = input;
+  const { ticker, source, items, sentiments } = input;
   
   if (items.length === 0) {
     throw new Error('Cannot aggregate empty items array');
@@ -147,11 +147,11 @@ export async function saveSnapshot(
 
     const embeddingId = embeddingResult.rows[0].id;
 
-    logger.debug({ snapshotId, embeddingId, ticker: snapshot.ticker }, 'Saved snapshot and embedding');
+    logger.debug('Saved snapshot and embedding', { snapshotId, embeddingId, ticker: snapshot.ticker });
 
     return { snapshotId, embeddingId };
   } catch (error) {
-    logger.error({ error, ticker: snapshot.ticker }, 'Failed to save snapshot');
+    logger.error('Failed to save snapshot', { error, ticker: snapshot.ticker });
     throw error;
   }
 }

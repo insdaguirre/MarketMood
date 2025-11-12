@@ -36,26 +36,26 @@ export async function fetchFinnhub(ticker: string): Promise<FetchResult> {
   try {
     const cached = await redis.get(cacheKey);
     if (cached) {
-      logger.debug({ ticker, source: 'finnhub' }, 'Cache hit');
+      logger.debug('Cache hit', { ticker, source: 'finnhub' });
       return JSON.parse(cached);
     }
   } catch (error) {
-    logger.warn({ error, ticker }, 'Cache read error');
+    logger.warn('Cache read error', { error, ticker });
   }
 
   try {
     const url = `https://finnhub.io/api/v1/company-news?symbol=${ticker}&from=${getDateString(-7)}&to=${getDateString(0)}`;
-    const response = await fetch(url, {
-      headers: {
-        'X-Finnhub-Token': config.FINNHUB_API_KEY,
-      },
-    });
+    const headers: Record<string, string> = {};
+    if (config.FINNHUB_API_KEY) {
+      headers['X-Finnhub-Token'] = config.FINNHUB_API_KEY;
+    }
+    const response = await fetch(url, { headers });
 
     if (!response.ok) {
       throw new Error(`Finnhub API error: ${response.status} ${response.statusText}`);
     }
 
-    const data: FinnhubNewsItem[] = await response.json();
+    const data = await response.json() as FinnhubNewsItem[];
 
     const items = data
       .filter(item => item.headline && item.url)
@@ -77,13 +77,13 @@ export async function fetchFinnhub(ticker: string): Promise<FetchResult> {
     try {
       await redis.setex(cacheKey, CACHE_TTL, JSON.stringify(result));
     } catch (error) {
-      logger.warn({ error }, 'Cache write error');
+      logger.warn('Cache write error', { error });
     }
 
-    logger.info({ ticker, count: items.length, source: 'finnhub' }, 'Fetched Finnhub data');
+    logger.info('Fetched Finnhub data', { ticker, count: items.length, source: 'finnhub' });
     return result;
   } catch (error) {
-    logger.error({ error, ticker }, 'Finnhub fetch error');
+    logger.error('Finnhub fetch error', { error, ticker });
     throw error;
   }
 }

@@ -1,12 +1,10 @@
 import * as ort from 'onnxruntime-node';
 import { logger } from '../config/logger';
 import { SentimentResult } from '../types/api';
-import { readFileSync } from 'fs';
 import { join } from 'path';
 
 const BATCH_SIZE = 64;
 let session: ort.InferenceSession | null = null;
-let tokenizer: any = null; // Tokenizer would be loaded separately
 
 /**
  * Initialize FinBERT model
@@ -26,13 +24,13 @@ async function initializeModel(): Promise<ort.InferenceSession> {
       session = await ort.InferenceSession.create(modelPath);
       logger.info('FinBERT model loaded');
     } catch (error) {
-      logger.warn({ error }, 'FinBERT model not found, using mock sentiment analysis');
+      logger.warn('FinBERT model not found, using mock sentiment analysis', { error });
       // Will use mock implementation below
     }
 
     return session!;
   } catch (error) {
-    logger.error({ error }, 'Failed to initialize FinBERT model');
+    logger.error('Failed to initialize FinBERT model', { error });
     throw error;
   }
 }
@@ -118,7 +116,7 @@ async function processSentiment(text: string): Promise<SentimentResult> {
     
     return { label, score };
   } catch (error) {
-    logger.warn({ error, text: text.substring(0, 50) }, 'Sentiment analysis error, using mock');
+    logger.warn('Sentiment analysis error, using mock', { error, text: text.substring(0, 50) });
     return mockSentimentAnalysis(text);
   }
 }

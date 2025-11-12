@@ -6,6 +6,9 @@ let redisClient: Redis | null = null;
 
 export function getRedis(): Redis {
   if (!redisClient) {
+    if (!config.REDIS_URL) {
+      throw new Error('REDIS_URL is not configured');
+    }
     redisClient = new Redis(config.REDIS_URL, {
       maxRetriesPerRequest: 3,
       retryStrategy: (times) => {
@@ -19,7 +22,7 @@ export function getRedis(): Redis {
     });
 
     redisClient.on('error', (err) => {
-      logger.error({ error: err }, 'Redis connection error');
+      logger.error('Redis connection error', { error: err });
     });
   }
 

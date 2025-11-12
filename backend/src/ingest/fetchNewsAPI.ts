@@ -42,11 +42,11 @@ export async function fetchNewsAPI(ticker: string): Promise<FetchResult> {
   try {
     const cached = await redis.get(cacheKey);
     if (cached) {
-      logger.debug({ ticker, source: 'newsapi' }, 'Cache hit');
+      logger.debug('Cache hit', { ticker, source: 'newsapi' });
       return JSON.parse(cached);
     }
   } catch (error) {
-    logger.warn({ error, ticker }, 'Cache read error');
+    logger.warn('Cache read error', { error, ticker });
   }
 
   try {
@@ -67,7 +67,7 @@ export async function fetchNewsAPI(ticker: string): Promise<FetchResult> {
       throw new Error(`NewsAPI error: ${response.status} ${response.statusText}`);
     }
 
-    const data: NewsAPIResponse = await response.json();
+    const data = await response.json() as NewsAPIResponse;
 
     if (data.status !== 'ok') {
       throw new Error(`NewsAPI returned status: ${data.status}`);
@@ -93,13 +93,13 @@ export async function fetchNewsAPI(ticker: string): Promise<FetchResult> {
     try {
       await redis.setex(cacheKey, CACHE_TTL, JSON.stringify(result));
     } catch (error) {
-      logger.warn({ error }, 'Cache write error');
+      logger.warn('Cache write error', { error });
     }
 
-    logger.info({ ticker, count: items.length, source: 'newsapi' }, 'Fetched NewsAPI data');
+    logger.info('Fetched NewsAPI data', { ticker, count: items.length, source: 'newsapi' });
     return result;
   } catch (error) {
-    logger.error({ error, ticker }, 'NewsAPI fetch error');
+    logger.error('NewsAPI fetch error', { error, ticker });
     throw error;
   }
 }

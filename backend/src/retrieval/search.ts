@@ -68,15 +68,15 @@ export async function vectorSearch(
       similarity: parseFloat(row.similarity),
     }));
 
-    logger.debug({ 
+    logger.debug('Vector search completed', { 
       queryLength: queryText.length, 
       tickers, 
       resultsCount: results.length 
-    }, 'Vector search completed');
+    });
 
     return results;
   } catch (error) {
-    logger.error({ error, queryText: queryText.substring(0, 50) }, 'Vector search error');
+    logger.error('Vector search error', { error, queryText: queryText.substring(0, 50) });
     throw error;
   }
 }
@@ -103,7 +103,7 @@ export async function getSnapshotDetails(snapshotIds: number[]): Promise<any[]> 
       top_mentions: row.top_mentions,
     }));
   } catch (error) {
-    logger.error({ error }, 'Failed to get snapshot details');
+    logger.error('Failed to get snapshot details', { error });
     throw error;
   }
 }

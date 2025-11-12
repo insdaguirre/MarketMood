@@ -16,7 +16,7 @@ export function getPool(): Pool {
     pool = new Pool(poolConfig);
 
     pool.on('error', (err) => {
-      logger.error({ error: err }, 'Unexpected database error');
+      logger.error('Unexpected database error', { error: err });
     });
 
     pool.on('connect', () => {
@@ -32,10 +32,10 @@ export async function query(text: string, params?: any[]) {
   try {
     const result = await getPool().query(text, params);
     const duration = Date.now() - start;
-    logger.debug({ duration, query: text.substring(0, 100) }, 'Database query');
+    logger.debug('Database query', { duration, query: text.substring(0, 100) });
     return result;
   } catch (error) {
-    logger.error({ error, query: text.substring(0, 100) }, 'Database query error');
+    logger.error('Database query error', { error, query: text.substring(0, 100) });
     throw error;
   }
 }
