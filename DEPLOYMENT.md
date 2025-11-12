@@ -146,9 +146,9 @@ npm run build
 2. Click "Create a project" → "Upload assets"
 3. Upload the `frontend/dist` folder
 4. Or connect GitHub repo and set:
-   - Build command: `cd frontend && npm run build`
-   - Build output directory: `frontend/dist`
    - Root directory: `frontend`
+   - Build command: `npm run build`
+   - Build output directory: `dist`
 
 5. Add environment variable:
    - `VITE_API_BASE_URL` = your Railway backend URL
