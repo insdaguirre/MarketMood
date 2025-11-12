@@ -20,12 +20,14 @@ router.get(
       const sinceMinutes = parseInt(req.query.sinceMinutes as string) || 1440;
 
       if (!ticker) {
-        return res.status(400).json({ error: 'ticker parameter is required' });
+        res.status(400).json({ error: 'ticker parameter is required' });
+        return;
       }
 
       // Validate ticker format
       if (!/^[A-Z]{1,5}(\.[A-Z])?$/.test(ticker)) {
-        return res.status(400).json({ error: 'Invalid ticker format' });
+        res.status(400).json({ error: 'Invalid ticker format' });
+        return;
       }
 
       const cutoffTime = new Date(Date.now() - sinceMinutes * 60 * 1000);
@@ -88,7 +90,8 @@ router.post(
       // Validate tickers
       for (const ticker of tickers) {
         if (!/^[A-Z]{1,5}(\.[A-Z])?$/.test(ticker)) {
-          return res.status(400).json({ error: `Invalid ticker format: ${ticker}` });
+          res.status(400).json({ error: `Invalid ticker format: ${ticker}` });
+          return;
         }
       }
 
@@ -96,12 +99,13 @@ router.post(
       const searchResults = await vectorSearch(queryText, tickers, k, 24);
 
       if (searchResults.length === 0) {
-        return res.json({
+        res.json({
           answer: 'I could not find any relevant information about the requested tickers in the last 24 hours.',
           citations: [],
           retrieved: 0,
           latencyMs: Date.now() - startTime,
         } as AskResponse);
+        return;
       }
 
       // Get snapshot details
