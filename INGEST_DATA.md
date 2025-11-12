@@ -2,9 +2,23 @@
 
 ## Quick Start
 
-### 1. Set Up Ticker Tiers
+### Trigger Ingestion (If Ticker Tiers Already Set)
 
-First, you need to configure which tickers to ingest. In Railway, add the `TICKER_TIERS_JSON` environment variable:
+If you've already configured `TICKER_TIERS_JSON` in Railway, just trigger ingestion:
+
+```bash
+curl -X POST \
+  -H "X-ADMIN-KEY: your_admin_key" \
+  "https://your-railway-url.up.railway.app/admin/ingest?tier=T0"
+```
+
+Replace:
+- `your_admin_key` with your `ADMIN_KEY` from Railway
+- `your-railway-url.up.railway.app` with your Railway domain
+
+### 1. Set Up Ticker Tiers (If Not Already Done)
+
+If you haven't configured ticker tiers yet, add the `TICKER_TIERS_JSON` environment variable in Railway:
 
 ```json
 {
