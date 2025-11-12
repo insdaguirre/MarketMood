@@ -131,15 +131,15 @@ router.post('/ingest', adminAuth, async (req: Request, res: Response) => {
 
     logger.info('Ingestion completed', { tier, tickersProcessed: tickers.length, items: totalItems, snapshotsCreated });
 
-    res.json({
+    return res.json({
       tier,
       tickersProcessed: tickers.length,
       items: totalItems,
       snapshotsUpserted: snapshotsCreated,
     });
   } catch (error) {
-    logger.error({ error }, 'Ingestion endpoint error');
-    res.status(500).json({ error: 'Internal server error' });
+    logger.error('Ingestion endpoint error', { error });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
