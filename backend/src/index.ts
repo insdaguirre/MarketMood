@@ -46,8 +46,8 @@ app.use((err: Error, req: express.Request, res: express.Response, _next: express
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// Start server
-const server = app.listen(PORT, () => {
+// Start server - bind to 0.0.0.0 for Railway
+const server = app.listen(PORT, '0.0.0.0', () => {
   logger.info(`Server running on port ${PORT}`);
 });
 
