@@ -1,4 +1,4 @@
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import { query } from './pg';
 import { logger } from '../config/logger';
@@ -6,7 +6,7 @@ import { logger } from '../config/logger';
 async function runMigration(file: string) {
   // Try dist/db/sql first (production), then src/db/sql (development)
   let sqlPath = join(__dirname, 'sql', file);
-  if (!require('fs').existsSync(sqlPath)) {
+  if (!existsSync(sqlPath)) {
     sqlPath = join(process.cwd(), 'src', 'db', 'sql', file);
   }
   const sql = readFileSync(sqlPath, 'utf-8');
