@@ -23,10 +23,13 @@ The 500 errors you're seeing are because the database tables don't exist yet. Th
    railway link
    ```
 
-4. **Run migrations**:
+4. **Navigate to backend directory and run migrations**:
    ```bash
+   cd backend
    railway run npm run db:migrate
    ```
+   
+   **Important**: You must run this from the `backend` directory, not the root directory!
 
 ### Option 2: Using Railway Dashboard
 
