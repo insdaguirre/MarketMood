@@ -1,5 +1,4 @@
 import MarketIndices from '../components/market/MarketIndices'
-import MarketTabs from '../components/market/MarketTabs'
 import TickerSelector from '../components/sentiment/TickerSelector'
 import SentimentChart from '../components/sentiment/SentimentChart'
 import { useState } from 'react'
@@ -18,7 +17,6 @@ export default function Dashboard() {
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      <MarketTabs />
       <MarketIndices />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
