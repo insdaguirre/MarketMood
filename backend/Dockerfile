@@ -3,16 +3,20 @@ FROM node:20-slim
 WORKDIR /app
 
 # Copy package files
-COPY package*.json ./
+COPY package.json ./
 
-# Install dependencies (production only)
-RUN npm ci --omit=dev
+# Install all dependencies (needed for TypeScript build)
+# Using npm install instead of npm ci since lockfile may not be present
+RUN npm install
 
 # Copy source code
 COPY . .
 
 # Build TypeScript
 RUN npm run build
+
+# Remove dev dependencies after build
+RUN npm prune --production
 
 # Expose port
 EXPOSE 8080
