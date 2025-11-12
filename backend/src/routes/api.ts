@@ -33,13 +33,31 @@ router.get(
 
       const cutoffTime = new Date(Date.now() - sinceMinutes * 60 * 1000);
 
-      const result = await query(
-        `SELECT ts, source, mean_score as mean, pos_ratio as pos, neg_ratio as neg, neu_ratio as neu, volume as vol
-         FROM "Snapshot"
-         WHERE ticker = $1 AND ts >= $2
-         ORDER BY ts DESC, source`,
-        [ticker, cutoffTime]
-      );
+      let result;
+      try {
+        result = await query(
+          `SELECT ts, source, mean_score as mean, pos_ratio as pos, neg_ratio as neg, neu_ratio as neu, volume as vol
+           FROM "Snapshot"
+           WHERE ticker = $1 AND ts >= $2
+           ORDER BY ts DESC, source`,
+          [ticker, cutoffTime]
+        );
+      } catch (dbError: any) {
+        // Check if it's a "table doesn't exist" error
+        if (dbError?.code === '42P01' || dbError?.message?.includes('does not exist')) {
+          logger.warn('Database tables not found - migrations may not have been run', { ticker });
+          // Return empty result instead of error
+          const response: SentimentResponse = {
+            ticker,
+            snapshots: [],
+            updatedAt: new Date().toISOString(),
+          };
+          res.json(response);
+          return;
+        }
+        // Re-throw other database errors
+        throw dbError;
+      }
 
       const snapshots = result.rows.map(row => ({
         ts: row.ts.toISOString(),
