@@ -33,7 +33,7 @@ const envSchema = z.object({
 
   // LLM Provider
   OPENAI_API_KEY: z.string().min(1).optional(),
-  LLM_MODEL: z.string().default('gpt-3.5-turbo'),
+  LLM_MODEL: z.string().default('gpt-4o-mini'),
 });
 
 // Make validation lenient for development - only validate in production
