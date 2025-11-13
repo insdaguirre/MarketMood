@@ -50,12 +50,32 @@ async function callLLM(prompt: string): Promise<string> {
 
     if (!response.ok) {
       const errorText = await response.text();
+      let errorMessage = `OpenAI API error: ${response.status}`;
+      
+      try {
+        const errorData = JSON.parse(errorText);
+        if (errorData.error?.message) {
+          errorMessage = errorData.error.message;
+          
+          // Handle specific error cases
+          if (errorData.error.code === 'insufficient_quota') {
+            errorMessage = 'OpenAI API quota exceeded. Please check your billing and plan details.';
+          } else if (errorData.error.code === 'invalid_api_key') {
+            errorMessage = 'Invalid OpenAI API key. Please check your OPENAI_API_KEY configuration.';
+          }
+        }
+      } catch {
+        // If JSON parsing fails, use the raw error text
+        errorMessage = errorText;
+      }
+      
       logger.error('OpenAI API error', { 
         status: response.status, 
         statusText: response.statusText,
-        error: errorText 
+        error: errorText,
+        parsedMessage: errorMessage
       });
-      throw new Error(`OpenAI API error: ${response.status} ${errorText}`);
+      throw new Error(errorMessage);
     }
 
     const data = await response.json() as { choices: Array<{ message: { content: string } }> };
