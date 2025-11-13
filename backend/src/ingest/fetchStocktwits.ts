@@ -43,27 +43,33 @@ export async function fetchStocktwits(ticker: string): Promise<FetchResult> {
     logger.warn('Cache read error', { error: error?.message || error, ticker });
   }
 
+  // Check if RapidAPI key is configured
+  if (!config.STOCKTWITS_TOKEN) {
+    const error = new Error('Stocktwits RapidAPI key not configured: STOCKTWITS_TOKEN missing');
+    logger.error('Stocktwits fetch error', { 
+      error: error.message,
+      ticker,
+      hasToken: !!config.STOCKTWITS_TOKEN
+    });
+    throw error;
+  }
+
   try {
-    logger.debug('Fetching Stocktwits data', { 
+    logger.debug('Fetching Stocktwits data via RapidAPI', { 
       ticker, 
-      hasToken: !!config.STOCKTWITS_TOKEN,
-      note: 'Stocktwits token is optional but recommended for higher rate limits'
+      hasToken: !!config.STOCKTWITS_TOKEN
     });
     
-    // Stocktwits API v2
-    const url = `https://api.stocktwits.com/api/2/streams/symbol/${ticker}.json?limit=50`;
+    // Stocktwits via RapidAPI
+    const url = `https://stocktwits.p.rapidapi.com/messages/symbol/${ticker}.json?limit=50`;
     
     const headers: Record<string, string> = {
       'Accept': 'application/json',
+      'x-rapidapi-host': 'stocktwits.p.rapidapi.com',
+      'x-rapidapi-key': config.STOCKTWITS_TOKEN,
     };
 
-    // Add token if available
-    if (config.STOCKTWITS_TOKEN) {
-      headers['Authorization'] = `Bearer ${config.STOCKTWITS_TOKEN}`;
-      logger.debug('Using Stocktwits token', { ticker });
-    } else {
-      logger.debug('No Stocktwits token - using public API (may have rate limits)', { ticker });
-    }
+    logger.debug('Using Stocktwits RapidAPI', { ticker, host: 'stocktwits.p.rapidapi.com' });
 
     const response = await fetch(url, { headers });
 
@@ -76,15 +82,16 @@ export async function fetchStocktwits(ticker: string): Promise<FetchResult> {
         // Not JSON, use as-is
       }
       
-      logger.error('Stocktwits HTTP error', { 
+      logger.error('Stocktwits RapidAPI HTTP error', { 
         status: response.status,
         statusText: response.statusText,
-        errorText: errorData.errors?.[0]?.message || errorText,
+        errorText: errorData.message || errorData.errors?.[0]?.message || errorText,
         errors: errorData.errors,
         ticker,
-        hasToken: !!config.STOCKTWITS_TOKEN
+        hasToken: !!config.STOCKTWITS_TOKEN,
+        url: url.replace(config.STOCKTWITS_TOKEN, '***')
       });
-      throw new Error(`Stocktwits API error: ${response.status} ${response.statusText} - ${errorData.errors?.[0]?.message || errorText}`);
+      throw new Error(`Stocktwits RapidAPI error: ${response.status} ${response.statusText} - ${errorData.message || errorData.errors?.[0]?.message || errorText}`);
     }
 
     const data = await response.json() as StocktwitsResponse;
@@ -118,12 +125,11 @@ export async function fetchStocktwits(ticker: string): Promise<FetchResult> {
       logger.warn('Cache write error', { error: error?.message || error });
     }
 
-    logger.info('Fetched Stocktwits data', { 
+    logger.info('Fetched Stocktwits data via RapidAPI', { 
       ticker, 
       count: items.length, 
       totalMessages: data.messages?.length || 0,
-      source: 'stocktwits',
-      hasToken: !!config.STOCKTWITS_TOKEN
+      source: 'stocktwits'
     });
     return result;
   } catch (error: any) {

@@ -25,15 +25,7 @@ interface NewsAPIResponse {
   articles: NewsAPIArticle[];
 }
 
-const FINANCIAL_SOURCES = [
-  'bloomberg',
-  'financial-times',
-  'the-wall-street-journal',
-  'reuters',
-  'cnbc',
-  'financial-post',
-  'business-insider',
-];
+// Removed FINANCIAL_SOURCES - now searching all sources
 
 export async function fetchNewsAPI(ticker: string): Promise<FetchResult> {
   const cacheKey = `newsapi:${ticker}`;
@@ -68,11 +60,10 @@ export async function fetchNewsAPI(ticker: string): Promise<FetchResult> {
     const from = fromDate.toISOString().split('T')[0];
     const to = new Date().toISOString().split('T')[0];
 
-    // Search for ticker in financial news
-    const query = `${ticker} AND (stock OR shares OR trading OR market)`;
-    const sources = FINANCIAL_SOURCES.join(',');
+    // Search for ticker in all sources (removed source restriction and simplified query)
+    const query = ticker;
     
-    const url = `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&sources=${sources}&from=${from}&to=${to}&sortBy=relevancy&pageSize=50&apiKey=${config.NEWSAPI_KEY}`;
+    const url = `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&from=${from}&to=${to}&sortBy=relevancy&pageSize=50&apiKey=${config.NEWSAPI_KEY}`;
     
     logger.debug('NewsAPI request', { ticker, url: url.replace(config.NEWSAPI_KEY, '***'), from, to });
     
@@ -122,10 +113,9 @@ export async function fetchNewsAPI(ticker: string): Promise<FetchResult> {
       logger.warn('NewsAPI returned 0 results', { 
         ticker,
         query,
-        sources,
         from,
         to,
-        note: 'This may be normal if no recent articles match the query'
+        note: 'Searching all sources for ticker. This may be normal if no recent articles match.'
       });
     }
 
