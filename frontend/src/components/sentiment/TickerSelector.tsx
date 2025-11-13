@@ -34,6 +34,7 @@ export default function TickerSelector({ selected, onSelect }: TickerSelectorPro
           className="flex-1 bg-dark-surface border border-dark-border rounded px-3 py-2 text-dark-text-primary placeholder-dark-text-muted focus:outline-none focus:border-dark-accent-blue"
         />
         <button
+          type="button"
           onClick={handleAdd}
           className="px-4 py-2 bg-dark-accent-blue text-white rounded hover:bg-blue-600 transition-colors"
         >
@@ -49,6 +50,7 @@ export default function TickerSelector({ selected, onSelect }: TickerSelectorPro
             >
               {ticker}
               <button
+                type="button"
                 onClick={() => handleRemove(ticker)}
                 className="text-dark-text-muted hover:text-dark-text-primary"
               >
@@ -62,6 +64,7 @@ export default function TickerSelector({ selected, onSelect }: TickerSelectorPro
         Popular: {POPULAR_TICKERS.map(t => (
           <button
             key={t}
+            type="button"
             onClick={() => !selected.includes(t) && onSelect([...selected, t])}
             className="mr-2 hover:text-dark-accent-blue"
           >

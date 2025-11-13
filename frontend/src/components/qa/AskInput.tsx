@@ -32,6 +32,15 @@ export default function AskInput({ onSubmit, isLoading }: AskInputProps) {
         <textarea
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => {
+            // Submit on Enter (but allow Shift+Enter for new lines)
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault()
+              if (query.trim() && tickers.length > 0) {
+                handleSubmit(e as any)
+              }
+            }
+          }}
           placeholder="e.g., Why is NVDA up today?"
           rows={4}
           className="w-full bg-dark-surface border border-dark-border rounded px-3 py-2 text-dark-text-primary placeholder-dark-text-muted focus:outline-none focus:border-dark-accent-blue resize-none"

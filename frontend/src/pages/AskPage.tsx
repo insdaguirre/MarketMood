@@ -16,6 +16,7 @@ export default function AskPage() {
   })
 
   const handleSubmit = (q: string, t: string[]) => {
+    // Only trigger query when explicitly submitted via "Ask" button or Enter key
     setQuery(q)
     setTickers(t)
     setShouldFetch(true)
