@@ -88,6 +88,22 @@ export async function fetchNewsAPI(ticker: string): Promise<FetchResult> {
         // Not JSON, use as-is
       }
       
+      // Handle rate limiting gracefully
+      if (response.status === 429) {
+        logger.warn('NewsAPI rate limit exceeded', { 
+          status: response.status,
+          statusText: response.statusText,
+          errorText: errorData.message || errorText,
+          ticker,
+          note: 'Free tier limit: 100 requests/24h. Returning empty result instead of failing.'
+        });
+        // Return empty result instead of throwing error
+        return {
+          ticker,
+          items: [],
+        };
+      }
+      
       logger.error('NewsAPI HTTP error', { 
         status: response.status,
         statusText: response.statusText,
