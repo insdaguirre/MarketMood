@@ -61,7 +61,7 @@ export async function fetchStocktwits(ticker: string): Promise<FetchResult> {
     });
     
     // Stocktwits via RapidAPI
-    const url = `https://stocktwits.p.rapidapi.com/messages/symbol/${ticker}.json?limit=50`;
+    const url = `https://stocktwits.p.rapidapi.com/streams/symbol/${ticker}.json?limit=50`;
     
     const headers: Record<string, string> = {
       'Accept': 'application/json',
