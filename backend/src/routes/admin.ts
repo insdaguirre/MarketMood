@@ -95,44 +95,44 @@ router.post('/ingest', adminAuth, async (req: Request, res: Response) => {
           const count = finnhubData.value.items.length;
           allItems.push(...finnhubData.value.items);
           sourceStatus.finnhub = { success: true, itemCount: count };
-          logger.debug('Finnhub data collected', { ticker, count, source: 'finnhub' });
+          logger.info('Finnhub data collected', { ticker, count, source: 'finnhub' });
         } else {
           const error = finnhubData.status === 'rejected' ? finnhubData.reason?.message || 'Unknown error' : 'No data returned';
           sourceStatus.finnhub = { success: false, itemCount: 0, error };
-          logger.debug('Finnhub failed or empty', { ticker, error, source: 'finnhub' });
+          logger.warn('Finnhub failed or empty', { ticker, error, source: 'finnhub' });
         }
 
         if (redditData.status === 'fulfilled' && redditData.value) {
           const count = redditData.value.items.length;
           allItems.push(...redditData.value.items);
           sourceStatus.reddit = { success: true, itemCount: count };
-          logger.debug('Reddit data collected', { ticker, count, source: 'reddit' });
+          logger.info('Reddit data collected', { ticker, count, source: 'reddit' });
         } else {
           const error = redditData.status === 'rejected' ? redditData.reason?.message || 'Unknown error' : 'No data returned';
           sourceStatus.reddit = { success: false, itemCount: 0, error };
-          logger.debug('Reddit failed or empty', { ticker, error, source: 'reddit' });
+          logger.warn('Reddit failed or empty', { ticker, error, source: 'reddit' });
         }
 
         if (newsapiData.status === 'fulfilled' && newsapiData.value) {
           const count = newsapiData.value.items.length;
           allItems.push(...newsapiData.value.items);
           sourceStatus.newsapi = { success: true, itemCount: count };
-          logger.debug('NewsAPI data collected', { ticker, count, source: 'newsapi' });
+          logger.info('NewsAPI data collected', { ticker, count, source: 'newsapi' });
         } else {
           const error = newsapiData.status === 'rejected' ? newsapiData.reason?.message || 'Unknown error' : 'No data returned';
           sourceStatus.newsapi = { success: false, itemCount: 0, error };
-          logger.debug('NewsAPI failed or empty', { ticker, error, source: 'newsapi' });
+          logger.warn('NewsAPI failed or empty', { ticker, error, source: 'newsapi' });
         }
 
         if (stocktwitsData.status === 'fulfilled' && stocktwitsData.value) {
           const count = stocktwitsData.value.items.length;
           allItems.push(...stocktwitsData.value.items);
           sourceStatus.stocktwits = { success: true, itemCount: count };
-          logger.debug('Stocktwits data collected', { ticker, count, source: 'stocktwits' });
+          logger.info('Stocktwits data collected', { ticker, count, source: 'stocktwits' });
         } else {
           const error = stocktwitsData.status === 'rejected' ? stocktwitsData.reason?.message || 'Unknown error' : 'No data returned';
           sourceStatus.stocktwits = { success: false, itemCount: 0, error };
-          logger.debug('Stocktwits failed or empty', { ticker, error, source: 'stocktwits' });
+          logger.warn('Stocktwits failed or empty', { ticker, error, source: 'stocktwits' });
         }
 
         // Log summary for this ticker
@@ -208,13 +208,23 @@ router.post('/ingest', adminAuth, async (req: Request, res: Response) => {
       }
     }
 
-    logger.info('Ingestion completed', { tier, tickersProcessed: tickers.length, items: totalItems, snapshotsCreated });
+    // Log final summary with source breakdown
+    const sourceSummary: Record<string, { success: boolean; items: number; snapshots: number }> = {};
+    
+    logger.info('Ingestion completed', { 
+      tier, 
+      tickersProcessed: tickers.length, 
+      items: totalItems, 
+      snapshotsCreated,
+      sourceSummary
+    });
 
     return res.json({
       tier,
       tickersProcessed: tickers.length,
       items: totalItems,
       snapshotsUpserted: snapshotsCreated,
+      message: 'Check server logs for detailed source-level information',
     });
   } catch (error) {
     logger.error('Ingestion endpoint error', { error });
