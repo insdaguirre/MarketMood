@@ -110,11 +110,24 @@ export async function fetchNewsAPI(ticker: string): Promise<FetchResult> {
       throw new Error(`NewsAPI returned status: ${data.status}`);
     }
 
-    logger.debug('NewsAPI response', { 
+    logger.info('NewsAPI response', { 
       ticker, 
       totalResults: data.totalResults,
-      articlesReturned: data.articles.length
+      articlesReturned: data.articles.length,
+      from,
+      to
     });
+
+    if (data.totalResults === 0) {
+      logger.warn('NewsAPI returned 0 results', { 
+        ticker,
+        query,
+        sources,
+        from,
+        to,
+        note: 'This may be normal if no recent articles match the query'
+      });
+    }
 
     const items = data.articles
       .filter(article => article.title && article.url)
