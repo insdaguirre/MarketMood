@@ -28,15 +28,19 @@ export async function vectorSearch(
     const vectorStr = `[${vector.join(',')}]`;
     
     // Build query with ticker filter and time window
-    const tickerFilter = tickers.length > 0 
-      ? `AND ticker = ANY($2::text[])`
-      : '';
-    
     const params: any[] = [vectorStr];
+    let paramIndex = 2;
+    
+    let tickerFilter = '';
     if (tickers.length > 0) {
+      tickerFilter = `AND ticker = ANY($${paramIndex}::text[])`;
       params.push(tickers);
+      paramIndex++;
     }
+    
     params.push(`${hoursWindow} hours`);
+    const timeParamIndex = paramIndex;
+    paramIndex++;
 
     // Use cosine distance (1 - cosine similarity)
     // For normalized vectors, cosine distance = 1 - dot product
@@ -49,10 +53,10 @@ export async function vectorSearch(
         text,
         1 - (embedding <=> $1::vector) AS similarity
       FROM "Embedding"
-      WHERE ts > now() - $${params.length}::interval
+      WHERE ts > now() - $${timeParamIndex}::interval
         ${tickerFilter}
       ORDER BY embedding <=> $1::vector
-      LIMIT $${params.length + 1}
+      LIMIT $${paramIndex}
     `;
 
     params.push(k);
