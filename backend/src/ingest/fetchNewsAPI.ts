@@ -34,8 +34,18 @@ export async function fetchNewsAPI(ticker: string): Promise<FetchResult> {
   try {
     const cached = await redis.get(cacheKey);
     if (cached) {
-      logger.debug('Cache hit', { ticker, source: 'newsapi' });
-      return JSON.parse(cached);
+      const cachedData = JSON.parse(cached) as FetchResult;
+      logger.debug('Cache hit', { 
+        ticker, 
+        source: 'newsapi',
+        cachedItemsCount: cachedData.items?.length || 0
+      });
+      // If cached result has items, return it; otherwise continue to fetch fresh data
+      if (cachedData.items && cachedData.items.length > 0) {
+        return cachedData;
+      } else {
+        logger.debug('Cached result is empty, fetching fresh data', { ticker });
+      }
     }
   } catch (error: any) {
     logger.warn('Cache read error', { error: error?.message || error, ticker });
@@ -119,6 +129,15 @@ export async function fetchNewsAPI(ticker: string): Promise<FetchResult> {
       });
     }
 
+    // Log before filtering
+    logger.debug('NewsAPI articles before filter', { 
+      ticker,
+      totalArticles: data.articles.length,
+      articlesWithTitle: data.articles.filter(a => a.title).length,
+      articlesWithUrl: data.articles.filter(a => a.url).length,
+      articlesWithBoth: data.articles.filter(a => a.title && a.url).length
+    });
+
     const items = data.articles
       .filter(article => article.title && article.url)
       .map(article => ({
@@ -129,6 +148,14 @@ export async function fetchNewsAPI(ticker: string): Promise<FetchResult> {
         timestamp: new Date(article.publishedAt),
       }))
       .slice(0, 50); // Limit to 50 items
+
+    // Log after filtering
+    logger.info('NewsAPI items after processing', { 
+      ticker,
+      itemsCount: items.length,
+      totalResults: data.totalResults,
+      articlesReturned: data.articles.length
+    });
 
     const result: FetchResult = {
       ticker,
