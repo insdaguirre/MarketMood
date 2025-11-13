@@ -1,5 +1,3 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
 
 const EQUITY_SECTORS = [
   { name: 'Materials', symbol: 'SIXB', value: 936.10, change: 0.71, positive: true },
@@ -15,27 +13,8 @@ const EQUITY_SECTORS = [
 ]
 
 export default function Sidebar() {
-  const [watchlist] = useState<string[]>([])
-
   return (
     <aside className="w-64 bg-dark-surface border-r border-dark-border p-4 overflow-y-auto">
-      <div className="mb-6">
-        <h2 className="text-sm font-semibold text-dark-text-secondary mb-2">Watchlist</h2>
-        {watchlist.length === 0 ? (
-          <p className="text-sm text-dark-text-muted">No tickers in watchlist</p>
-        ) : (
-          <ul className="space-y-1">
-            {watchlist.map(ticker => (
-              <li key={ticker}>
-                <Link to={`/ticker/${ticker}`} className="text-sm text-dark-text-primary hover:text-dark-accent-blue">
-                  {ticker}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
       <div>
         <h2 className="text-sm font-semibold text-dark-text-secondary mb-2">Equity Sectors</h2>
         <ul className="space-y-2">
