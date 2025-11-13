@@ -94,7 +94,7 @@ export default function SentimentChart({ data, source }: SentimentChartProps) {
       mean: Number(item.mean.toFixed(1)),
       positive: Number(item.positive.toFixed(1)),
       negative: Number(item.negative.toFixed(1)),
-      neutral: Number(item.neu.toFixed(1)),
+      neutral: Number(item.neutral.toFixed(1)),
     }))
 
   const CustomTooltip = ({ active, payload, label }: any) => {

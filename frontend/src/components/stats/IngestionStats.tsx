@@ -1,12 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { apiClient, StatsResponse } from '../../lib/api'
 
-interface SourceStats {
-  count: number
-  lastQuery: string | null
-  nextQuery: string | null
-}
-
 function formatTimeAgo(dateString: string | null): string {
   if (!dateString) return 'Never'
   const date = new Date(dateString)
