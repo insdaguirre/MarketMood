@@ -156,9 +156,18 @@ router.post('/ingest', adminAuth, async (req: Request, res: Response) => {
           bySource.get(item.source)!.push(item);
         }
 
+        // Log source grouping
+        logger.debug('Items grouped by source', { 
+          ticker,
+          sources: Array.from(bySource.entries()).map(([source, items]) => ({ source, count: items.length }))
+        });
+
         // Process each source
         for (const [source, items] of bySource.entries()) {
-          if (items.length === 0) continue;
+          if (items.length === 0) {
+            logger.debug('Skipping empty source', { ticker, source });
+            continue;
+          }
 
           try {
             logger.debug('Processing source', { ticker, source, itemCount: items.length });
