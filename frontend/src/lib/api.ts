@@ -64,6 +64,17 @@ export interface AskResponse {
   latencyMs: number;
 }
 
+export interface StatsResponse {
+  sources: {
+    finnhub: { count: number; lastQuery: string | null; nextQuery: string | null };
+    reddit: { count: number; lastQuery: string | null; nextQuery: string | null };
+    newsapi: { count: number; lastQuery: string | null; nextQuery: string | null };
+    stocktwits: { count: number; lastQuery: string | null; nextQuery: string | null };
+  };
+  totalSnapshots: number;
+  lastIngestion: string | null;
+}
+
 export const apiClient = {
   getSentiment: async (ticker: string, sinceMinutes?: number): Promise<SentimentResponse> => {
     const params = new URLSearchParams({ ticker });
@@ -76,6 +87,11 @@ export const apiClient = {
 
   ask: async (request: AskRequest): Promise<AskResponse> => {
     const response = await api.post<AskResponse>('/api/ask', request);
+    return response.data;
+  },
+
+  getStats: async (): Promise<StatsResponse> => {
+    const response = await api.get<StatsResponse>('/api/stats');
     return response.data;
   },
 };

@@ -22,6 +22,7 @@ async function migrate() {
     await runMigration('000_init.sql');
     await runMigration('010_pgvector.sql');
     await runMigration('020_schema.sql');
+    await runMigration('030_add_snapshot_unique_constraint.sql');
     
     logger.info('All migrations completed successfully');
     process.exit(0);

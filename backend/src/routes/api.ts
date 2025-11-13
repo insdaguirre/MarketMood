@@ -212,4 +212,93 @@ router.post(
   }
 );
 
+// Stats endpoint
+router.get(
+  '/stats',
+  rateLimiters.sentiment,
+  async (_req: Request, res: Response): Promise<void> => {
+    try {
+      const last24Hours = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+      // Get counts per source
+      const countResult = await query(
+        `SELECT source, COUNT(*) as count, MAX(inserted_at) as last_inserted
+         FROM "Snapshot"
+         WHERE inserted_at >= $1
+         GROUP BY source`,
+        [last24Hours]
+      );
+
+      // Cache TTLs in seconds
+      const CACHE_TTL: Record<string, number> = {
+        finnhub: 15 * 60,      // 15 minutes
+        newsapi: 15 * 60,      // 15 minutes
+        reddit: 30 * 60,       // 30 minutes
+        stocktwits: 30 * 60,   // 30 minutes
+      };
+
+      const sources: Record<string, { count: number; lastQuery: string | null; nextQuery: string | null }> = {
+        finnhub: { count: 0, lastQuery: null, nextQuery: null },
+        reddit: { count: 0, lastQuery: null, nextQuery: null },
+        newsapi: { count: 0, lastQuery: null, nextQuery: null },
+        stocktwits: { count: 0, lastQuery: null, nextQuery: null },
+      };
+
+      let totalSnapshots = 0;
+      let lastIngestion: Date | null = null;
+
+      for (const row of countResult.rows) {
+        const source = row.source;
+        const count = parseInt(row.count);
+        const lastInserted = row.last_inserted ? new Date(row.last_inserted) : null;
+
+        if (sources[source]) {
+          sources[source].count = count;
+          sources[source].lastQuery = lastInserted ? lastInserted.toISOString() : null;
+          
+          // Calculate next query time (last query + cache TTL)
+          if (lastInserted) {
+            const ttlSeconds = CACHE_TTL[source] || 15 * 60;
+            const nextQuery = new Date(lastInserted.getTime() + ttlSeconds * 1000);
+            sources[source].nextQuery = nextQuery.toISOString();
+          }
+
+          totalSnapshots += count;
+          if (!lastIngestion || (lastInserted && lastInserted > lastIngestion)) {
+            lastIngestion = lastInserted;
+          }
+        }
+      }
+
+      // Get overall last ingestion time if no source-specific data
+      if (!lastIngestion) {
+        const overallResult = await query(
+          `SELECT MAX(inserted_at) as last_inserted FROM "Snapshot"`,
+          []
+        );
+        if (overallResult.rows[0]?.last_inserted) {
+          lastIngestion = new Date(overallResult.rows[0].last_inserted);
+        }
+      }
+
+      res.json({
+        sources,
+        totalSnapshots,
+        lastIngestion: lastIngestion ? lastIngestion.toISOString() : null,
+      });
+      return;
+    } catch (error: any) {
+      logger.error('Stats endpoint error', { 
+        error: error?.message || error,
+        stack: error?.stack
+      });
+      res.status(500).json({ 
+        error: 'Internal server error',
+        message: error?.message || 'Unknown error'
+      });
+      return;
+    }
+  }
+);
+
 export default router;
