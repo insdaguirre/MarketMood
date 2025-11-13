@@ -205,8 +205,19 @@ router.post(
         return;
       }
       
-      logger.error('Ask endpoint error', { error });
-      res.status(500).json({ error: 'Internal server error' });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      
+      logger.error('Ask endpoint error', { 
+        error: errorMessage,
+        stack: errorStack,
+        body: req.body
+      });
+      
+      res.status(500).json({ 
+        error: 'Internal server error',
+        message: errorMessage
+      });
       return;
     }
   }

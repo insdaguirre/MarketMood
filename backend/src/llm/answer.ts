@@ -19,6 +19,11 @@ function getCacheKey(query: string, tickers: string[], topIds: number[]): string
  * Call LLM API to generate answer
  */
 async function callLLM(prompt: string): Promise<string> {
+  if (!config.OPENAI_API_KEY) {
+    logger.warn('OPENAI_API_KEY not configured, using fallback answer');
+    return 'I apologize, but the AI service is not currently configured. Please check the OPENAI_API_KEY environment variable.';
+  }
+
   try {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -44,14 +49,26 @@ async function callLLM(prompt: string): Promise<string> {
     });
 
     if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`OpenAI API error: ${response.status} ${error}`);
+      const errorText = await response.text();
+      logger.error('OpenAI API error', { 
+        status: response.status, 
+        statusText: response.statusText,
+        error: errorText 
+      });
+      throw new Error(`OpenAI API error: ${response.status} ${errorText}`);
     }
 
     const data = await response.json() as { choices: Array<{ message: { content: string } }> };
+    if (!data.choices || !data.choices[0]?.message?.content) {
+      throw new Error('Invalid response from OpenAI API');
+    }
     return data.choices[0].message.content;
   } catch (error) {
-    logger.error('LLM API error', { error });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error('LLM API error', { 
+      error: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined
+    });
     throw error;
   }
 }
