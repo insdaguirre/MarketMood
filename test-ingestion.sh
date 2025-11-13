@@ -26,11 +26,14 @@ echo "URL: $RAILWAY_URL/admin/ingest?tier=$TIER"
 echo "=========================================="
 echo ""
 
-# Trigger ingestion
-RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
+# Trigger ingestion (with timeout and progress)
+echo "Sending request (this may take 1-2 minutes for T0 tier with 10 tickers)..."
+echo ""
+
+RESPONSE=$(curl -s -w "\n%{http_code}" --max-time 120 -X POST \
   -H "X-ADMIN-KEY: $ADMIN_KEY" \
   -H "Content-Type: application/json" \
-  "$RAILWAY_URL/admin/ingest?tier=$TIER")
+  "$RAILWAY_URL/admin/ingest?tier=$TIER" 2>&1)
 
 HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
 BODY=$(echo "$RESPONSE" | sed '$d')
