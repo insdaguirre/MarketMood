@@ -72,10 +72,13 @@ export async function vectorSearch(
       similarity: parseFloat(row.similarity),
     }));
 
-    logger.debug('Vector search completed', { 
+    logger.info('Vector search completed', { 
       queryLength: queryText.length, 
       tickers, 
-      resultsCount: results.length 
+      resultsCount: results.length,
+      hoursWindow,
+      oldestResult: results.length > 0 ? results[results.length - 1].ts.toISOString() : null,
+      newestResult: results.length > 0 ? results[0].ts.toISOString() : null
     });
 
     return results;

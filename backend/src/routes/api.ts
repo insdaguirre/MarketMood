@@ -121,10 +121,10 @@ router.post(
         }
       }
 
-      // Vector search
+      // Vector search - use 7 days window to include more historical data
       let searchResults;
       try {
-        searchResults = await vectorSearch(queryText, tickers, k, 24);
+        searchResults = await vectorSearch(queryText, tickers, k, 168); // 7 days = 168 hours
       } catch (searchError: any) {
         // Check if it's a "table doesn't exist" error
         if (searchError?.code === '42P01' || searchError?.message?.includes('does not exist')) {
@@ -141,14 +141,21 @@ router.post(
       }
 
       if (searchResults.length === 0) {
+        logger.warn('No search results found', { queryText, tickers, hoursWindow: 168 });
         res.json({
-          answer: 'I could not find any relevant information about the requested tickers in the last 24 hours.',
+          answer: 'I could not find any relevant information about the requested tickers in the last 7 days. This could mean:\n- No data has been ingested for these tickers yet\n- The data is older than 7 days\n- Try running ingestion to collect fresh data',
           citations: [],
           retrieved: 0,
           latencyMs: Date.now() - startTime,
         } as AskResponse);
         return;
       }
+      
+      logger.info('Search results found', { 
+        queryText: queryText.substring(0, 50), 
+        tickers, 
+        resultsCount: searchResults.length 
+      });
 
       // Get snapshot details
       const snapshotIds = [...new Set(searchResults.map(r => r.snapshot_id))];
