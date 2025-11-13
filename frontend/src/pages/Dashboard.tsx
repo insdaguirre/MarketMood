@@ -11,7 +11,7 @@ export default function Dashboard() {
   const [selectedTicker, setSelectedTicker] = useState('AAPL')
   const { data: sentimentData, isLoading } = useQuery({
     queryKey: ['sentiment', selectedTicker],
-    queryFn: () => apiClient.getSentiment(selectedTicker),
+    queryFn: () => apiClient.getSentiment(selectedTicker, 10080), // 7 days instead of default 24 hours
     enabled: !!selectedTicker,
     refetchInterval: 60000, // Refetch every minute
   })
